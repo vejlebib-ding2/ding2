@@ -5,6 +5,30 @@
 profiler_v2('ding2');
 
 /**
+ * Implements hook_form_FORM_ID_alter().
+ *
+ * Allows the profile to alter the site configuration form.
+ */
+if (!function_exists("system_form_install_configure_form_alter")) {
+  function system_form_install_configure_form_alter(&$form, $form_state) {
+    $form['site_information']['site_name']['#default_value'] = 'ding2';
+  }
+}
+
+/**
+ * Implements hook_form_alter().
+ *
+ * Select the current install profile by default.
+ */
+if (!function_exists("system_form_install_select_profile_form_alter")) {
+  function system_form_install_select_profile_form_alter(&$form, $form_state) {
+    foreach ($form['profile'] as $key => $element) {
+      $form['profile'][$key]['#value'] = 'ding2';
+    }
+  }
+}
+
+/**
  * Implements hook_form_alter().
  *
  * Remove #required attribute for form elements in the installer
@@ -18,7 +42,7 @@ profiler_v2('ding2');
  * they do not know how to handle and thus prevent them from completing the
  * installation.
  */
-function ding2_form_alter(&$form, $form_state, $form_id) {
+function ding2_form_alter(&$form, &$form_state, $form_id) {
   // Proces all forms during installation except the Drupal default
   // configuration form
   if (defined('MAINTENANCE_MODE') && MAINTENANCE_MODE == 'install' &&
@@ -33,7 +57,7 @@ function ding2_form_alter(&$form, $form_state, $form_id) {
  *
  * Allows the profile to alter the site configuration form.
  */
-function ding2_form_install_configure_form_alter(&$form, $form_state) {
+function ding2_form_install_configure_form_alter(&$form, &$form_state, $form_id) {
   // Pre-populate the site name with the server name.
   $form['site_information']['site_name']['#default_value'] = $_SERVER['SERVER_NAME'];
 }
@@ -97,4 +121,31 @@ function _ding2_remove_form_requirements(&$value, $key) {
   if ($key === '#required') {
     $value = FALSE;
   }
+}
+
+/**
+ * Implements hook_ding_install_tasks().
+ */
+function ding2_ding_install_tasks() {
+
+    $node = array();
+    ob_start();
+    require 'content/page-not-found.inc';
+    ob_end_clean();
+
+    $node = (object) $node;
+    $node->uid = 1;
+
+    node_save($node);
+
+    //Provide default page for EU Cookie Compliance module
+    $node = array();
+    ob_start();
+    require 'content/cookies.inc';
+    ob_end_clean();
+
+    $node = (object) $node;
+    $node->uid = 1;
+
+    node_save($node);
 }
